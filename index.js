@@ -47,14 +47,13 @@ async function run() {
 
         })
 
-
-        app.get('/productLists/:brandName', async (req, res) => {
-            const brandName = res.params.brandName;
-            const cursor = automotiveCollection.find();
+        // for show products data in dynamic
+        app.get('/products/:brand', async (req, res) => {
+            const brandName = req.params.brand;
+            const cursor = automotiveCollection.find({ brandName });
             const result = await cursor.toArray();
-            res.send(result)
-
-        })
+            res.send(result);
+        });
 
 
         // create product 
