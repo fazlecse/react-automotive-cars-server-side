@@ -27,11 +27,11 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const automotiveCollection = client.db('automotiveDB').collection('automotive');
-
         const categoryCollection = client.db("automotiveDB").collection("category");
+        const productDataCollection = client.db("automotiveDB").collection("productData");
         // for show product
         app.get('/products', async (req, res) => {
 
@@ -64,6 +64,12 @@ async function run() {
             res.send(result);
         })
 
+        // get Products data
+        app.get('/productData', async (req, res) => {
+            const cursor = productDataCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
 
 
         // create product 
@@ -73,13 +79,13 @@ async function run() {
             const result = await automotiveCollection.insertOne(newProduct)
             res.send(result);
         })
-
+        // update product data
         app.put('/product/:id', async (req, res) => {
             const { id } = req.params;
             const options = { upsert: true };
             const updatedProduct = req.body;
             console.log(updatedProduct);
-            const filter = { _id: new ObjectId(id)};
+            const filter = { _id: new ObjectId(id) };
             const updateOperation = {
                 $set: {
                     name: updatedProduct.name,
@@ -95,8 +101,6 @@ async function run() {
             res.send(result);
         })
 
-
-
         // create category
         app.post('/category', async (req, res) => {
             const newCategory = req.body;
@@ -104,6 +108,14 @@ async function run() {
             const result = await categoryCollection.insertOne(newCategory);
             res.send(result)
         })
+        // create add to cart product data
+        app.post('/productData', async (req, res) => {
+            const productData = req.body;
+            console.log(productData);
+            const result = await productDataCollection.insertOne(productData);
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -116,7 +128,7 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
+    res.send('Automotive server is running...')
 })
 
 app.listen(port, () => {
