@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 require('dotenv').config()
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // midleware
 app.use(cors());
@@ -30,6 +30,7 @@ async function run() {
         await client.connect();
 
         const automotiveCollection = client.db('automotiveDB').collection('automotive');
+
         const categoryCollection = client.db("automotiveDB").collection("category");
         // for show product
         app.get('/products', async (req, res) => {
@@ -55,6 +56,15 @@ async function run() {
             res.send(result);
         });
 
+        //get products 
+        app.get('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await automotiveCollection.findOne(query);
+            res.send(result);
+        })
+
+
 
         // create product 
         app.post('/products', async (req, res) => {
@@ -63,6 +73,30 @@ async function run() {
             const result = await automotiveCollection.insertOne(newProduct)
             res.send(result);
         })
+
+        app.put('/product/:id', async (req, res) => {
+            const { id } = req.params;
+            const options = { upsert: true };
+            const updatedProduct = req.body;
+            console.log(updatedProduct);
+            const filter = { _id: new ObjectId(id)};
+            const updateOperation = {
+                $set: {
+                    name: updatedProduct.name,
+                    brandName: updatedProduct.brandName,
+                    type: updatedProduct.type,
+                    price: updatedProduct.price,
+                    shortDescription: updatedProduct.shortDescription,
+                    rating: updatedProduct.rating,
+                    imgUrl: updatedProduct.imgUrl,
+                },
+            };
+            const result = await automotiveCollection.updateOne(filter, updateOperation, options);
+            res.send(result);
+        })
+
+
+
         // create category
         app.post('/category', async (req, res) => {
             const newCategory = req.body;
